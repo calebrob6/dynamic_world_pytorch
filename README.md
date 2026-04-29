@@ -54,23 +54,39 @@ The model is fully convolutional, so any `(H, W)` ≥ 4 works.
 
 ## TensorFlow conversion
 
-The conversion preserves the model's outputs to within float32 rounding noise. Reproduce with:
+The bundled `weights/dynamic_world.pt` was converted from the official TF SavedModel and matches it bit-exactly (max |Δ| ≈ 4 × 10⁻⁶, within float32 rounding noise). To reproduce or re-verify, first download the SavedModel into `weights/tf_forward/` (the default location used by the scripts; gitignored):
 
 ```bash
 git clone https://github.com/google/dynamicworld.git /tmp/dynamicworld
-pip install tensorflow  # for reading the SavedModel
-python convert_weights.py --tf-model /tmp/dynamicworld/model/forward --verify
+cp -r /tmp/dynamicworld/model/forward weights/tf_forward
+pip install tensorflow  # required for reading the SavedModel
+```
+
+Re-verify that the bundled PyTorch weights still match the TF SavedModel:
+
+```bash
+python compare_tf_pt.py
 ```
 
 Expected output:
 
 ```
-Numerical verification:
+Loading TF SavedModel from weights/tf_forward ...
+Loading PyTorch model from weights/dynamic_world.pt ...
+Random input shape (NHWC) = (1, 60, 60, 9) (seed=0)
+
+Numerical comparison:
   TF  output mean/std = -4.7081 / 0.8728
   PT  output mean/std = -4.7081 / 0.8728
-  max |Δ|             = 3.8147e-06
-  mean |Δ|            = 6.4635e-07
+  max |Δ|             = 4.2915e-06
+  mean |Δ|            = 7.8948e-07
   ✅ Bit-exact match (within float32 rounding noise)
+```
+
+Or regenerate `weights/dynamic_world.pt` from the TF checkpoint:
+
+```bash
+python convert_weights.py
 ```
 
 ## Inference on new imagery
@@ -116,6 +132,7 @@ If the matching official `DynamicWorld_V1_<S2_ID>_{label,probs}.tif` files are i
 |:--------------------|:----------------------------------------------------------------------------|
 | `dynamic_world.py`  | The model — single file, only `torch` required                              |
 | `convert_weights.py`| TF SavedModel → PyTorch state dict converter (requires `tensorflow`)        |
+| `compare_tf_pt.py`  | Run TF SavedModel and PyTorch port on the same random input and diff outputs (requires `tensorflow`) |
 | `inference.py`      | Run local GeoTIFF inference and compare against exported Dynamic World rasters |
 | `ee_export_example.py` | Earth Engine export/download example for matching S2 L1C and Dynamic World rasters |
 | `weights/dynamic_world.pt` | Converted pretrained weights (~957 KB)                                |

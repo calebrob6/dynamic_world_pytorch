@@ -122,9 +122,8 @@ def main() -> int:
     )
     ap.add_argument(
         "--tf-model",
-        required=True,
-        help="Path to the TF SavedModel `forward/` directory "
-        "(e.g. /path/to/dynamicworld/model/forward)",
+        default="weights/tf_forward",
+        help="Path to the TF SavedModel `forward/` directory (default: %(default)s).",
     )
     ap.add_argument(
         "--output",

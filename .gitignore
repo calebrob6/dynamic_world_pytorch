@@ -1,4 +1,5 @@
 data/
+weights/tf_forward/
 
 __pycache__/
 *.py[cod]
